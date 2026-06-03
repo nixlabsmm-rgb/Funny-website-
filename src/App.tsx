@@ -16,6 +16,7 @@ import ProfilePage from './components/ProfilePage';
 import NotificationSettingsPage from './components/NotificationSettingsPage';
 import { Globe, Rss, User as UserIcon, Bell, Moon, Sun, Monitor, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import socialLogo from './assets/images/social_logo_1780482522011.png';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -111,13 +112,13 @@ export default function App() {
         <div className="relative">
           <div className="w-16 h-16 border-4 border-lime-500/20 border-t-lime-600 rounded-none animate-spin" />
           <img 
-            src="/src/assets/images/social_logo_1780482522011.png" 
+            src={socialLogo} 
             alt="Logo" 
             className="w-8 h-8 object-contain absolute left-4 top-4"
           />
         </div>
-        <span className="text-xs font-semibold text-lime-400 mt-6 tracking-wide animate-pulse">
-          {MM.appName.toUpperCase()} is loading...
+        <span className="text-xs font-semibold text-lime-400 mt-6 tracking-wide animate-pulse font-myanmar">
+          {MM.appName} is loading...
         </span>
       </div>
     );
@@ -129,6 +130,7 @@ export default function App() {
       <Login
         onLoginStart={() => setLoginError(null)}
         onLoginError={(err) => setLoginError(err)}
+        error={loginError}
       />
     );
   }
@@ -156,15 +158,15 @@ export default function App() {
       <nav id="desktop-sidebar-nav" className="hidden md:flex w-[240px] border-r border-zinc-200 dark:border-zinc-800 flex-col p-6 sticky top-0 h-screen bg-zinc-50/50 dark:bg-black shrink-0 z-30">
         <div className="mb-10">
           <h1 className="text-xl font-bold flex flex-col gap-1.5 text-zinc-900 dark:text-zinc-50">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 justify-start">
               <img 
-                src="/src/assets/images/social_logo_1780482522011.png" 
+                src={socialLogo} 
                 alt="Logo" 
-                className="w-7 h-7 object-contain shrink-0"
+                className="w-7 h-7 object-contain shrink-0 transition duration-300 hover:scale-110"
               />
               <span className="text-[10px] tracking-widest font-mono text-zinc-400 dark:text-zinc-500 font-bold">COMMUNITY</span>
             </div>
-            <span className="font-extrabold text-[17px] text-lime-600 dark:text-lime-400 font-myanmar leading-relaxed pt-1">
+            <span className="font-myanmar font-black text-lg bg-gradient-to-r from-lime-600 via-emerald-600 to-green-600 dark:from-lime-400 dark:via-emerald-400 dark:to-green-400 bg-clip-text text-transparent leading-relaxed pt-1 drop-shadow-sm">
               {MM.appName}
             </span>
           </h1>
@@ -237,11 +239,11 @@ export default function App() {
             {/* Show tiny logo for mobile devices when vertical sidebar gets collapsed */}
             <div className="md:hidden flex items-center space-x-2">
               <img 
-                src="/src/assets/images/social_logo_1780482522011.png" 
+                src={socialLogo} 
                 alt="Logo" 
                 className="w-8 h-8 object-contain shrink-0"
               />
-              <span className="font-extrabold text-sm text-lime-600 dark:text-lime-400 font-myanmar">
+              <span className="font-myanmar font-black text-sm bg-gradient-to-r from-lime-600 via-emerald-600 to-green-600 dark:from-lime-400 dark:via-emerald-400 dark:to-green-400 bg-clip-text text-transparent leading-relaxed drop-shadow-[0_1px_4px_rgba(132,204,22,0.15)]">
                 {MM.appName}
               </span>
             </div>

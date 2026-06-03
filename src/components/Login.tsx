@@ -2,26 +2,29 @@ import React, { useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
 import { MM } from '../lib/locale';
-import { LogIn, Sparkles, Globe } from 'lucide-react';
+import { LogIn, Sparkles, Globe, AlertTriangle } from 'lucide-react';
 import { motion } from 'motion/react';
+import socialLogo from '../assets/images/social_logo_1780482522011.png';
 
 interface LoginProps {
   onLoginStart: () => void;
   onLoginError: (err: string) => void;
+  error?: string | null;
 }
 
 export default function Login(props: LoginProps) {
+  const { onLoginStart, onLoginError, error } = props;
   const [loading, setLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
-    props.onLoginStart();
+    onLoginStart();
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (err: any) {
       console.error('Google Auth Error:', err);
       // Friendly, clean error reporting
-      props.onLoginError(err.message || 'Authentication failed. Please try again.');
+      onLoginError(err.message || 'Authentication failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -44,19 +47,19 @@ export default function Login(props: LoginProps) {
           <div className="w-24 h-24 rounded-none flex items-center justify-center mb-4 transition duration-300 hover:scale-105 select-none">
             <img 
               id="login-app-logo"
-              src="/src/assets/images/social_logo_1780482522011.png" 
+              src={socialLogo} 
               alt="ပေါက်ပေါက်ဖောက်ရန် Logo" 
               className="w-24 h-24 object-contain"
               referrerPolicy="no-referrer"
             />
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-lime-400 via-emerald-300 to-green-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-myanmar font-black tracking-normal leading-relaxed bg-gradient-to-r from-lime-400 via-emerald-300 to-green-400 bg-clip-text text-transparent filter drop-shadow-[0_2px_8px_rgba(132,204,22,0.3)]">
             {MM.appName}
           </h1>
           <span className="text-[11px] text-lime-400 font-bold tracking-wide mt-2.5 mb-3 bg-lime-950/20 px-3 py-0.5 rounded-none border border-lime-800/30">
             Myanmar Social Net
           </span>
-          <p className="text-sm text-zinc-400 max-w-xs leading-relaxed px-2">
+          <p className="text-sm text-zinc-400 max-w-xs leading-relaxed px-2 font-sans">
             {MM.appSlogan}
           </p>
         </div>
@@ -93,6 +96,29 @@ export default function Login(props: LoginProps) {
               </>
             )}
           </button>
+
+          {/* Diagnostic assistance for any Google Login failures */}
+          {error && (
+            <div className="mt-4 p-4 bg-red-950/40 border border-red-900/50 rounded-none text-xs text-red-200 space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+              <div className="font-bold flex items-center gap-1.5 text-red-400">
+                <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
+                <span>Authentication Error</span>
+              </div>
+              <p className="leading-relaxed font-sans">{error}</p>
+              
+              {(error.includes('unauthorized-domain') || error.includes('auth/unauthorized-domain') || window.location.hostname.includes('vercel.app')) && (
+                <div className="bg-black/40 p-2.5 border border-zinc-800/50 mt-2 space-y-1.5 font-sans text-[11px] text-zinc-300">
+                  <p className="font-semibold text-lime-400">How to fix this in Vercel / Live Deployment:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-zinc-400">
+                    <li>Go to <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer" className="underline text-lime-400 hover:text-lime-300">Firebase Console</a></li>
+                    <li>Select your project, click <strong>Authentication</strong></li>
+                    <li>Go to <strong>Settings</strong> tab &rarr; <strong>Authorized domains</strong></li>
+                    <li>Add <code className="bg-zinc-800 px-1 text-zinc-200 rounded">{window.location.hostname}</code> to the list</li>
+                  </ol>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </motion.div>
     </div>

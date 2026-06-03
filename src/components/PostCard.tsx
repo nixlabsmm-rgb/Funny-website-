@@ -143,18 +143,28 @@ export default function PostCard(props: PostCardProps) {
     }
   };
 
-  // Humanize Timestamp to localized String
+  // Humanize Timestamp to compact localized String
   const formatTime = (ts: any) => {
     if (!ts) return '';
     const date = ts.toDate ? ts.toDate() : new Date(ts);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return 'now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays}d ago`;
+
     return date.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
       hour: 'numeric',
       minute: 'numeric',
       hour12: true
-    });
+    }).replace(/, /g, ' • ');
   };
 
   // Helper values
@@ -188,8 +198,8 @@ export default function PostCard(props: PostCardProps) {
                 <Sparkles className="w-3.5 h-3.5 ml-1 text-lime-600 animate-bounce" />
               )}
             </h4>
-            <div className="flex items-center space-x-1 text-[10px] text-zinc-400 font-mono mt-0.5">
-              <Clock className="w-3 h-3" />
+            <div className="flex items-center space-x-1 text-[8.5px] text-zinc-400 font-mono tracking-tight h-auto leading-none mt-1">
+              <Clock className="w-2.5 h-2.5" />
               <span>{formatTime(post.createdAt)}</span>
             </div>
           </div>
@@ -311,7 +321,7 @@ export default function PostCard(props: PostCardProps) {
                         <span className="font-bold text-zinc-800 dark:text-zinc-200">
                           {cmt.userId === currentUser.id ? currentUser.displayName : cmt.userName}
                         </span>
-                        <div className="flex items-center space-x-1 text-[9px] text-zinc-400 font-mono">
+                        <div className="flex items-center space-x-1 text-[8.5px] text-zinc-400 font-mono tracking-tight h-auto leading-none">
                           <span>{formatTime(cmt.createdAt)}</span>
                           {(cmt.userId === currentUser.id || post.authorId === currentUser.id) && (
                             <button

@@ -72,31 +72,31 @@ export default function PostActions({ post, currentUser, showComments, onComment
       case 'like':
         return {
           label: MM.reactLike || 'Like',
-          icon: <ThumbsUp className="w-4.5 h-4.5 shrink-0 fill-current" />,
+          icon: <span className="text-base select-none shrink-0 filter drop-shadow">👍</span>,
           colorClass: 'text-lime-600 dark:text-lime-400 font-extrabold',
         };
       case 'haha':
         return {
           label: MM.reactHaha || 'Haha',
-          icon: <Smile className="w-4.5 h-4.5 shrink-0 fill-current" />,
+          icon: <span className="text-base select-none shrink-0 filter drop-shadow text-amber-500">😆</span>,
           colorClass: 'text-amber-500 dark:text-amber-400 font-extrabold',
         };
       case 'care':
         return {
           label: MM.reactCare || 'Care',
-          icon: <Heart className="w-4.5 h-4.5 shrink-0 fill-current" />,
+          icon: <span className="text-base select-none shrink-0 filter drop-shadow text-pink-500">❤️</span>,
           colorClass: 'text-pink-500 dark:text-pink-400 font-extrabold',
         };
       case 'angry':
         return {
           label: MM.reactAngry || 'Angry',
-          icon: <Frown className="w-4.5 h-4.5 shrink-0 fill-current" />,
+          icon: <span className="text-base select-none shrink-0 filter drop-shadow text-red-500">😡</span>,
           colorClass: 'text-red-500 dark:text-red-400 font-extrabold',
         };
       default:
         return {
           label: MM.reactLike || 'Like',
-          icon: <ThumbsUp className="w-4.5 h-4.5 shrink-0" />,
+          icon: <ThumbsUp className="w-4 h-4 shrink-0 transition duration-150" />,
           colorClass: 'text-zinc-500 dark:text-zinc-400 hover:text-lime-600 dark:hover:text-lime-400',
         };
     }
