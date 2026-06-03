@@ -1,0 +1,125 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Primitive definitions
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    function incoming() {
+      return request.resource.data;
+    }
+    function existing() {
+      return resource.data;
+    }
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Entity validation functions
+    function isValidUser(data) {
+      return data.id is string && data.id.size() <= 128 
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100
+        && data.onboarded is bool
+        && (!('bio' in data) || (data.bio is string && data.bio.size() <= 500))
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 1048576))
+        && (!('notificationSettings' in data) || (data.notificationSettings is map));
+    }
+
+    function isValidPost(data) {
+      return data.authorId is string && data.authorId.size() <= 128
+        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 100
+        && (!('authorPhoto' in data) || (data.authorPhoto is string && data.authorPhoto.size() <= 1048576))
+        && data.text is string && data.text.size() <= 5000
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 1048576))
+        && (!('likesCount' in data) || (data.likesCount is int))
+        && (!('hahaCount' in data) || (data.hahaCount is int))
+        && (!('careCount' in data) || (data.careCount is int))
+        && (!('angryCount' in data) || (data.angryCount is int))
+        && (!('commentsCount' in data) || (data.commentsCount is int))
+        && (!('hashtags' in data) || (data.hashtags is list && data.hashtags.size() <= 20));
+    }
+
+    function isValidReaction(data) {
+      return data.userId is string && data.userId.size() <= 128
+        && data.type is string && data.type in ['like', 'haha', 'care', 'angry'];
+    }
+
+    function isValidComment(data) {
+      return data.userId is string && data.userId.size() <= 128
+        && data.userName is string && data.userName.size() >= 1 && data.userName.size() <= 100
+        && (!('userPhoto' in data) || (data.userPhoto is string && data.userPhoto.size() <= 1048576))
+        && data.text is string && data.text.size() >= 1 && data.text.size() <= 2000;
+    }
+
+    // Match users
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isOwner(userId) && isValidUser(incoming()) && incoming().createdAt == request.time;
+      allow update: if isOwner(userId) && isValidUser(incoming()) && incoming().updatedAt == request.time;
+      allow delete: if false; // Profiles are not deleted in this app flow
+    }
+
+    // Match posts
+    match /posts/{postId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(postId) && isValidPost(incoming()) 
+        && incoming().authorId == request.auth.uid
+        && incoming().createdAt == request.time;
+      
+      // Updates can be action-driven:
+      // Action 1: Post owner editing text or photo
+      // Action 2: Anyone updating reacts or comment counts
+      allow update: if isSignedIn() && isValidId(postId) && (
+        // Action 1: Owner edits content
+        (isOwner(existing().authorId) && isValidPost(incoming())
+         && incoming().authorId == existing().authorId
+         && incoming().createdAt == existing().createdAt
+         && incoming().updatedAt == request.time
+         && incoming().diff(existing()).affectedKeys().hasOnly(['text', 'photoURL', 'hashtags', 'authorName', 'authorPhoto', 'updatedAt']))
+        ||
+        // Action 2: Reacts or comment counts are incremented/decremented
+        (isValidPost(incoming())
+         && incoming().authorId == existing().authorId
+         && incoming().text == existing().text
+         && incoming().createdAt == existing().createdAt
+         && incoming().diff(existing()).affectedKeys().hasOnly(['likesCount', 'hahaCount', 'careCount', 'angryCount', 'commentsCount', 'updatedAt']))
+      );
+      
+      allow delete: if isSignedIn() && isValidId(postId) && isOwner(existing().authorId);
+    }
+
+    // Match reactions
+    match /posts/{postId}/reactions/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isOwner(userId) && isValidId(postId) && isValidReaction(incoming()) && incoming().createdAt == request.time;
+      allow update: if isOwner(userId) && isValidId(postId) && isValidReaction(incoming()) && incoming().updatedAt == request.time;
+      allow delete: if isOwner(userId) && isValidId(postId);
+    }
+
+    // Match comments
+    match /posts/{postId}/comments/{commentId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(postId) && isValidId(commentId) && isValidComment(incoming()) 
+        && incoming().userId == request.auth.uid
+        && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && isValidId(postId) && isValidId(commentId) && isValidComment(incoming())
+        && incoming().userId == request.auth.uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time;
+      allow delete: if isSignedIn() && isValidId(postId) && isValidId(commentId) 
+        && (isOwner(existing().userId) || isOwner(get(/databases/$(database)/documents/posts/$(postId)).data.authorId));
+    }
+  }
+}

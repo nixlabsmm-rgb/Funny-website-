@@ -1,0 +1,92 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile with display name, bio, profile photo, and onboarding status.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The unique Firebase Auth user UID." },
+        "displayName": { "type": "string", "description": "User's public name in Myanmar language or custom text." },
+        "photoURL": { "type": "string", "description": "URL to user's profile picture." },
+        "bio": { "type": "string", "description": "Short bio or intro." },
+        "onboarded": { "type": "boolean", "description": "Whether the user completed onboarding." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Profile creation timestamp." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Profile update timestamp." },
+        "notificationSettings": {
+          "type": "object",
+          "description": "Notification toggles.",
+          "properties": {
+            "newPost": { "type": "boolean" },
+            "newReaction": { "type": "boolean" },
+            "newComment": { "type": "boolean" }
+          }
+        }
+      },
+      "required": ["id", "displayName", "onboarded"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "A text or photo post in the feed.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique post ID." },
+        "authorId": { "type": "string", "description": "UID of the user who published the post." },
+        "authorName": { "type": "string", "description": "Display name of the author when post was created." },
+        "authorPhoto": { "type": "string", "description": "Profile photo of the author when post was created." },
+        "text": { "type": "string", "description": "Text content of the post." },
+        "photoURL": { "type": "string", "description": "Optional attached picture URL." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp." },
+        "likesCount": { "type": "integer" },
+        "hahaCount": { "type": "integer" },
+        "careCount": { "type": "integer" },
+        "angryCount": { "type": "integer" },
+        "commentsCount": { "type": "integer" },
+        "hashtags": { "type": "array", "description": "Extracted hashtags from text." }
+      },
+      "required": ["id", "authorId", "authorName", "text", "createdAt"]
+    },
+    "Reaction": {
+      "title": "Reaction",
+      "description": "A single reaction from a user on a post.",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["like", "haha", "care", "angry"] },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["type", "userId", "createdAt"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "A comment left on a post.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhoto": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "userName", "text", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and settings."
+    },
+    "posts/{postId}": {
+      "schema": "Post",
+      "description": "Shared posts feed."
+    },
+    "posts/{postId}/reactions/{userId}": {
+      "schema": "Reaction",
+      "description": "User reactions to specific posts."
+    },
+    "posts/{postId}/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "User comments on specific posts."
+    }
+  }
+}
