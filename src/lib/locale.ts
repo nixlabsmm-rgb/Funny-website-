@@ -19,11 +19,11 @@ export const MM = {
   
   // Navigation
   navFeed: "Feed",
-  navProfile: "My Profile",
-  navNotifications: "Notifications",
+  navProfile: "Mine",
+  navNotifications: "Noti",
   
   // Feed
-  feedInputPlaceholder: "ဘာတွေတွေးနေလဲ?",
+  feedInputPlaceholder: "What's on your mind?",
   feedShareText: "Share Post",
   feedSharePhoto: "Share Photo",
   feedPostBtn: "Post",
@@ -60,9 +60,23 @@ export const MM = {
   notifNewPost: "When a friend posts",
   notifNewReact: "When your post gets a reaction",
   notifNewComment: "When someone comments on your post",
+  notifNewMessage: "when someone sent message",
   notifSaveSuccess: "Notification settings saved successfully",
   notifSaved: "Successfully Saved",
   
   // Theme
   themeSystem: "System Default Theme (Auto)",
+  
+  // Chat
+  navChat: "Chat",
+  chatSearchPlaceholder: "Search people...",
+  chatVoiceMsg: "အသံမက်ဆေ့ခ်ျ",
+  chatMuteBtn: "Set Rectangle (Restrict)",
+  chatUnmuteBtn: "Set Circle (Allow)",
+  chatMutedLabel: "Rectangle shape friend can not send messages me",
+  chatNoMessages: "မက်ဆေ့ခ်ျမရှိသေးပါ။ ချတ်စတင်လိုက်ပါ!",
+  chatTypeMessagePlaceholder: "မက်ဆေ့ခ်ျရေးပါ...",
+  chatRecording: "အသံသွင်းနေသည်...",
+  chatPlayVoice: "အသံဖွင့်ရန်",
+  chatPauseVoice: "ရပ်ရန်",
 };

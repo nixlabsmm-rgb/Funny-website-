@@ -59,6 +59,17 @@ service cloud.firestore {
         && data.text is string && data.text.size() >= 1 && data.text.size() <= 2000;
     }
 
+    function isValidMessage(data) {
+      return data.senderId is string && data.senderId.size() <= 128
+        && data.receiverId is string && data.receiverId.size() <= 128
+        && data.senderName is string && data.senderName.size() >= 1 && data.senderName.size() <= 100
+        && (!('senderPhoto' in data) || (data.senderPhoto is string && data.senderPhoto.size() <= 1048576))
+        && data.text is string && data.text.size() <= 5000
+        && (!('audioUrl' in data) || (data.audioUrl is string && data.audioUrl.size() <= 1048576))
+        && (!('audioDuration' in data) || (data.audioDuration is int || data.audioDuration is float))
+        && (!('reactions' in data) || (data.reactions is map));
+    }
+
     // Match users
     match /users/{userId} {
       allow get: if isSignedIn();
@@ -120,6 +131,39 @@ service cloud.firestore {
         && incoming().updatedAt == request.time;
       allow delete: if isSignedIn() && isValidId(postId) && isValidId(commentId) 
         && (isOwner(existing().userId) || isOwner(get(/databases/$(database)/documents/posts/$(postId)).data.authorId));
+    }
+
+    // Match muted users directory
+    match /users/{userId}/muted/{peerId} {
+      allow read, get, list: if isOwner(userId);
+      allow create, update: if isOwner(userId) && incoming().muted is bool && incoming().createdAt == request.time;
+      allow delete: if isOwner(userId);
+    }
+
+    // Match chats messages subcollection
+    match /chats/{chatId}/messages/{messageId} {
+      allow read, list: if isSignedIn() && (
+        chatId.matches('^' + request.auth.uid + '_[a-zA-Z0-9_\\-]+$') || 
+        chatId.matches('^[a-zA-Z0-9_\\-]+_' + request.auth.uid + '$')
+      );
+      allow create: if isSignedIn() && isValidId(chatId) && isValidId(messageId) && isValidMessage(incoming())
+        && incoming().senderId == request.auth.uid
+        && (
+          chatId == request.auth.uid + '_' + incoming().receiverId || 
+          chatId == incoming().receiverId + '_' + request.auth.uid
+        )
+        && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && isValidId(chatId) && isValidId(messageId) && (
+        chatId.matches('^' + request.auth.uid + '_[a-zA-Z0-9_\\-]+$') || 
+        chatId.matches('^[a-zA-Z0-9_\\-]+_' + request.auth.uid + '$')
+      ) && isValidMessage(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['reactions'])
+      );
+      allow delete: if isSignedIn() && isValidId(chatId) && isValidId(messageId) 
+        && (
+          chatId.matches('^' + request.auth.uid + '_[a-zA-Z0-9_\\-]+$') || 
+          chatId.matches('^[a-zA-Z0-9_\\-]+_' + request.auth.uid + '$')
+        );
     }
   }
 }

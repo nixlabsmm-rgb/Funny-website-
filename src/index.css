@@ -7,17 +7,14 @@
   --font-myanmar: "Noto Sans Myanmar", "Padauk", sans-serif;
 }
 
-/* Custom scrollbar matching green/lime theme */
+/* Custom scrollbar - completely hidden for a clean and flawless premium aesthetic */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 0px !important;
+  height: 0px !important;
+  display: none !important;
 }
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(132, 204, 22, 0.2);
-  border-radius: 0px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(132, 204, 22, 0.4);
+
+* {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
 }

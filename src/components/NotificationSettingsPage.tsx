@@ -15,17 +15,19 @@ export default function NotificationSettingsPage(props: NotificationSettingsPage
   const [newPost, setNewPost] = useState(currentUser.notificationSettings?.newPost ?? true);
   const [newReaction, setNewReaction] = useState(currentUser.notificationSettings?.newReaction ?? true);
   const [newComment, setNewComment] = useState(currentUser.notificationSettings?.newComment ?? true);
+  const [newMessage, setNewMessage] = useState(currentUser.notificationSettings?.newMessage ?? true);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleToggle = async (key: 'newPost' | 'newReaction' | 'newComment', currentVal: boolean) => {
+  const handleToggle = async (key: 'newPost' | 'newReaction' | 'newComment' | 'newMessage', currentVal: boolean) => {
     const newVal = !currentVal;
     
     // Snappy UX updates local state instantly
     if (key === 'newPost') setNewPost(newVal);
     if (key === 'newReaction') setNewReaction(newVal);
     if (key === 'newComment') setNewComment(newVal);
+    if (key === 'newMessage') setNewMessage(newVal);
 
     setLoading(true);
     setSuccess(false);
@@ -35,7 +37,8 @@ export default function NotificationSettingsPage(props: NotificationSettingsPage
     const updatedSettings = {
       newPost: key === 'newPost' ? newVal : newPost,
       newReaction: key === 'newReaction' ? newVal : newReaction,
-      newComment: key === 'newComment' ? newVal : newComment
+      newComment: key === 'newComment' ? newVal : newComment,
+      newMessage: key === 'newMessage' ? newVal : newMessage
     };
 
     try {
@@ -158,6 +161,33 @@ export default function NotificationSettingsPage(props: NotificationSettingsPage
               {/* Tick checkbox style */}
               <div className={`w-5 h-5 border transition-all duration-150 flex items-center justify-center shrink-0 ${
                 newComment 
+                  ? 'bg-lime-600 border-lime-700 text-white animate-scale-up' 
+                  : 'border-zinc-400 dark:border-zinc-600 text-transparent bg-white dark:bg-zinc-950 hover:border-lime-500 dark:hover:border-lime-400'
+              }`}>
+                <Check className="w-3.5 h-3.5 stroke-[3.5]" />
+              </div>
+            </div>
+
+            {/* Toggle 4: New Message */}
+            <div 
+              id="notif-toggle-new-message"
+              onClick={() => handleToggle('newMessage', newMessage)}
+              className="flex items-center justify-between p-4 bg-zinc-50 hover:bg-zinc-100/50 dark:bg-zinc-950/30 dark:hover:bg-zinc-950/50 rounded-none border border-zinc-100 dark:border-zinc-800 cursor-pointer transition duration-150"
+            >
+              <div className="flex items-center space-x-3.5 pr-2">
+                <div className="w-8 h-8 rounded-none bg-zinc-200 dark:bg-zinc-800 text-zinc-550 dark:text-zinc-400 flex items-center justify-center shrink-0">
+                  <Bell className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-xs sm:text-sm font-bold text-zinc-800 dark:text-zinc-200 block capitalize">
+                    {MM.notifNewMessage}
+                  </span>
+                </div>
+              </div>
+
+              {/* Tick checkbox style */}
+              <div className={`w-5 h-5 border transition-all duration-150 flex items-center justify-center shrink-0 ${
+                newMessage 
                   ? 'bg-lime-600 border-lime-700 text-white animate-scale-up' 
                   : 'border-zinc-400 dark:border-zinc-600 text-transparent bg-white dark:bg-zinc-950 hover:border-lime-500 dark:hover:border-lime-400'
               }`}>

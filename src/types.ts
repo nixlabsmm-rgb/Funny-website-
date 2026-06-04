@@ -2,6 +2,7 @@ export interface NotificationSettings {
   newPost: boolean;
   newReaction: boolean;
   newComment: boolean;
+  newMessage: boolean;
 }
 
 export interface UserProfile {
@@ -48,4 +49,4 @@ export interface Reaction {
 
 export type ReactionType = 'like' | 'haha' | 'care' | 'angry';
 
-export type AppTab = 'feed' | 'profile' | 'notifications';
+export type AppTab = 'feed' | 'messenger' | 'notifications' | 'profile';

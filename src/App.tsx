@@ -14,9 +14,10 @@ import Onboarding from './components/Onboarding';
 import FeedPage from './components/FeedPage';
 import ProfilePage from './components/ProfilePage';
 import NotificationSettingsPage from './components/NotificationSettingsPage';
-import { Globe, Rss, User as UserIcon, Bell, Moon, Sun, Monitor, AlertTriangle } from 'lucide-react';
+import { Globe, Rss, User as UserIcon, Bell, Moon, Sun, Monitor, AlertTriangle, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import socialLogo from './assets/images/social_logo_1780482522011.png';
+import ChatPage from './components/ChatPage';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -78,7 +79,12 @@ export default function App() {
               bio: data.bio || '',
               onboarded: data.onboarded || false,
               createdAt: data.createdAt,
-              notificationSettings: data.notificationSettings || { newPost: true, newReaction: true, newComment: true }
+              notificationSettings: {
+                newPost: data.notificationSettings?.newPost ?? true,
+                newReaction: data.notificationSettings?.newReaction ?? true,
+                newComment: data.notificationSettings?.newComment ?? true,
+                newMessage: data.notificationSettings?.newMessage ?? true
+              }
             });
           } else {
             setProfile(null);
@@ -117,7 +123,7 @@ export default function App() {
             className="w-8 h-8 object-contain absolute left-4 top-4"
           />
         </div>
-        <span className="text-xs font-semibold text-lime-400 mt-6 tracking-wide animate-pulse font-myanmar">
+        <span className="text-xs font-semibold text-lime-400 mt-6 tracking-wide animate-pulse font-myanmar leading-relaxed">
           {MM.appName} is loading...
         </span>
       </div>
@@ -162,7 +168,7 @@ export default function App() {
               <img 
                 src={socialLogo} 
                 alt="Logo" 
-                className="w-7 h-7 object-contain shrink-0 transition duration-300 hover:scale-110"
+                className="w-9 h-9 object-contain shrink-0 transition duration-300 hover:scale-110"
               />
               <span className="text-[10px] tracking-widest font-mono text-zinc-400 dark:text-zinc-500 font-bold">COMMUNITY</span>
             </div>
@@ -185,20 +191,20 @@ export default function App() {
             <Rss className="w-4.5 h-4.5 shrink-0" />
             <span className="font-semibold text-sm">{MM.navFeed}</span>
           </button>
-          
+
           <button
-            id="sidebar-nav-profile"
-            onClick={() => setActiveTab('profile')}
+            id="sidebar-nav-messenger"
+            onClick={() => setActiveTab('messenger')}
             className={`w-full flex items-center gap-3.5 px-4 py-2.5 rounded-none border transition duration-150 ${
-              activeTab === 'profile'
+              activeTab === 'messenger'
                 ? 'bg-lime-500/10 text-lime-600 dark:text-lime-400 border-lime-500/20 font-semibold'
                 : 'text-zinc-500 dark:text-zinc-400 border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-800 dark:hover:text-zinc-200'
             }`}
           >
-            <UserIcon className="w-4.5 h-4.5 shrink-0" />
-            <span className="font-semibold text-sm">{MM.navProfile}</span>
+            <MessageSquare className="w-4.5 h-4.5 shrink-0" />
+            <span className="font-semibold text-sm">{MM.navChat}</span>
           </button>
-          
+
           <button
             id="sidebar-nav-notifications"
             onClick={() => setActiveTab('notifications')}
@@ -210,6 +216,19 @@ export default function App() {
           >
             <Bell className="w-4.5 h-4.5 shrink-0" />
             <span className="font-semibold text-sm">{MM.navNotifications}</span>
+          </button>
+
+          <button
+            id="sidebar-nav-profile"
+            onClick={() => setActiveTab('profile')}
+            className={`w-full flex items-center gap-3.5 px-4 py-2.5 rounded-none border transition duration-150 ${
+              activeTab === 'profile'
+                ? 'bg-lime-500/10 text-lime-600 dark:text-lime-400 border-lime-500/20 font-semibold'
+                : 'text-zinc-500 dark:text-zinc-400 border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-800 dark:hover:text-zinc-200'
+            }`}
+          >
+            <UserIcon className="w-4.5 h-4.5 shrink-0" />
+            <span className="font-semibold text-sm">{MM.navProfile}</span>
           </button>
         </div>
 
@@ -232,55 +251,81 @@ export default function App() {
       </nav>
 
       {/* Main Content Column */}
-      <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden min-w-0 bg-zinc-50 dark:bg-black">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0 bg-zinc-50 dark:bg-black">
         {/* Top Header inside main view */}
-        <header className="h-16 border-b border-zinc-200 dark:border-zinc-800/80 flex items-center justify-between px-6 sm:px-8 bg-white/70 dark:bg-black/50 backdrop-blur-md sticky top-0 z-40">
-          <div className="flex items-center space-x-3">
+        <header className="h-14 z-45 border-b border-zinc-200 dark:border-zinc-800/80 flex items-center justify-between px-4 sm:px-8 bg-white/80 dark:bg-black/70 backdrop-blur-md sticky top-0 shrink-0 select-none">
+          <div className="flex items-center space-x-3 relative top-[4px]">
             {/* Show tiny logo for mobile devices when vertical sidebar gets collapsed */}
             <div className="md:hidden flex items-center space-x-2">
               <img 
                 src={socialLogo} 
                 alt="Logo" 
-                className="w-8 h-8 object-contain shrink-0"
+                className="w-9 h-9 object-contain shrink-0"
               />
-              <span className="font-myanmar font-black text-sm bg-gradient-to-r from-lime-600 via-emerald-600 to-green-600 dark:from-lime-400 dark:via-emerald-400 dark:to-green-400 bg-clip-text text-transparent leading-relaxed drop-shadow-[0_1px_4px_rgba(132,204,22,0.15)]">
+              <span className="font-myanmar font-black text-xs bg-gradient-to-r from-lime-600 via-emerald-600 to-green-600 dark:from-lime-400 dark:via-emerald-400 dark:to-green-400 bg-clip-text text-transparent leading-relaxed py-0.5">
                 {MM.appName}
               </span>
             </div>
             
-            <h2 id="current-viewport-title" className="hidden md:block text-lg font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">
-              {activeTab === 'feed' && MM.navFeed}
-              {activeTab === 'profile' && MM.navProfile}
-              {activeTab === 'notifications' && MM.navNotifications}
-            </h2>
+            {/* Divider on mobile */}
+            <span className="md:hidden text-zinc-300 dark:text-zinc-800 font-light text-xs">/</span>
+
+            {/* Custom page title and icon container for matched layout */}
+            <div id="current-viewport-title" className="flex items-center gap-2">
+              {activeTab === 'feed' && (
+                <>
+                  <Rss className="w-4.5 h-4.5 text-lime-600 dark:text-lime-400 shrink-0" />
+                  <span className="text-sm md:text-base font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">{MM.navFeed}</span>
+                </>
+              )}
+              {activeTab === 'profile' && (
+                <>
+                  <UserIcon className="w-4.5 h-4.5 text-lime-600 dark:text-lime-400 shrink-0" />
+                  <span className="text-sm md:text-base font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">{MM.navProfile}</span>
+                </>
+              )}
+              {activeTab === 'notifications' && (
+                <>
+                  <Bell className="w-4.5 h-4.5 text-lime-600 dark:text-lime-400 shrink-0" />
+                  <span className="text-sm md:text-base font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">{MM.navNotifications}</span>
+                </>
+              )}
+              {activeTab === 'messenger' && (
+                <>
+                  <MessageSquare className="w-4.5 h-4.5 text-lime-600 dark:text-lime-400 shrink-0" />
+                  <span className="text-sm md:text-base font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">{MM.navChat}</span>
+                </>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center space-x-2">
-            {profile && (
-              <div className="flex items-center space-x-2 px-3 py-1.5 bg-zinc-100/80 dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-800 rounded-none text-xs font-semibold">
-                <img
-                  src={profile.photoURL}
-                  alt={profile.displayName}
-                  className="w-5 h-5 rounded-none border border-zinc-200 dark:border-zinc-800 object-cover shrink-0"
-                />
-                <span className="text-zinc-700 dark:text-zinc-300 truncate max-w-[100px]">
-                  {profile.displayName}
-                </span>
-              </div>
-            )}
-            
-            <div className="p-2 bg-zinc-100 dark:bg-zinc-900 rounded-none border border-zinc-200 dark:border-zinc-800">
+          <div className="flex items-center space-x-2 relative top-[4px]">
+            <button
+              onClick={() => {
+                const nextDark = !isDark;
+                setIsDark(nextDark);
+                if (nextDark) {
+                  document.documentElement.classList.add('dark');
+                  document.documentElement.style.backgroundColor = '#000000';
+                } else {
+                  document.documentElement.classList.remove('dark');
+                  document.documentElement.style.backgroundColor = '#f4f4f5';
+                }
+              }}
+              title="Toggle theme"
+              className="p-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 rounded-none border border-zinc-200 dark:border-zinc-800 transition cursor-pointer"
+            >
               {isDark ? (
                 <Moon className="w-4 h-4 text-lime-450 dark:text-lime-400" />
               ) : (
                 <Sun className="w-4 h-4 text-lime-600" />
               )}
-            </div>
+            </button>
           </div>
         </header>
 
         {/* Central Feed/Page content container */}
-        <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-8 mb-24 md:mb-12">
+        <main className={`flex-1 w-full mx-auto px-4 py-8 pb-32 md:pb-20 overflow-y-auto ${activeTab === 'messenger' ? 'max-w-4xl' : 'max-w-2xl'}`}>
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -292,6 +337,7 @@ export default function App() {
               {activeTab === 'feed' && <FeedPage currentUser={profile} />}
               {activeTab === 'profile' && <ProfilePage currentUser={profile} />}
               {activeTab === 'notifications' && <NotificationSettingsPage currentUser={profile} />}
+              {activeTab === 'messenger' && <ChatPage currentUser={profile} />}
             </motion.div>
           </AnimatePresence>
         </main>
@@ -366,6 +412,18 @@ export default function App() {
                   <div className="w-3.5 h-3.5 rounded-none bg-white shadow-sm" />
                 </div>
               </div>
+
+              <div 
+                className="flex items-center justify-between cursor-pointer group"
+                onClick={() => setActiveTab('notifications')}
+              >
+                <span className="text-xs text-zinc-600 dark:text-zinc-300 group-hover:text-lime-500 transition duration-150 capitalize">
+                  {MM.notifNewMessage}
+                </span>
+                <div className={`w-8 h-4.5 rounded-none border border-zinc-300 dark:border-zinc-700 p-0.5 flex transition ${profile?.notificationSettings?.newMessage ? 'bg-lime-600 justify-end' : 'bg-zinc-300 dark:bg-zinc-800 justify-start'}`}>
+                  <div className="w-3.5 h-3.5 rounded-none bg-white shadow-sm" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -373,39 +431,50 @@ export default function App() {
 
       {/* Bottom Floating Navigation for Mobile screens */}
       <footer id="app-mobile-footer" className="md:hidden fixed bottom-4 left-4 right-4 z-40">
-        <div className="bg-white/95 dark:bg-zinc-950/95 backdrop-blur border border-zinc-200/50 dark:border-zinc-900 rounded-none h-16 pointer-events-auto shadow-2xl flex items-center justify-around px-2">
+        <div className="bg-white/95 dark:bg-zinc-950/95 backdrop-blur border border-zinc-200/50 dark:border-zinc-900 rounded-none h-16 pointer-events-auto shadow-2xl flex items-center justify-around px-1">
           
           <button
             id="mobile-nav-feed"
             onClick={() => setActiveTab('feed')}
-            className={`flex flex-col items-center justify-center py-1.5 w-16 rounded-none transition ${
+            className={`flex-1 flex flex-col items-center justify-center py-2 rounded-none transition whitespace-nowrap ${
               activeTab === 'feed' ? 'text-lime-600 font-bold scale-105' : 'text-zinc-500'
             }`}
           >
-            <Rss className="w-5 h-5 md:w-5.5 md:h-5.5" />
-            <span className="text-[9px] font-black mt-1">{MM.navFeed}</span>
+            <Rss className="w-5 h-5 shrink-0" />
+            <span className="text-[9px] font-black mt-1 uppercase tracking-wider">{MM.navFeed}</span>
           </button>
- 
+
           <button
-            id="mobile-nav-profile"
-            onClick={() => setActiveTab('profile')}
-            className={`flex flex-col items-center justify-center py-1.5 w-16 rounded-none transition ${
-              activeTab === 'profile' ? 'text-lime-600 font-bold scale-105' : 'text-zinc-500'
+            id="mobile-nav-messenger"
+            onClick={() => setActiveTab('messenger')}
+            className={`flex-1 flex flex-col items-center justify-center py-2 rounded-none transition whitespace-nowrap ${
+              activeTab === 'messenger' ? 'text-lime-600 font-bold scale-105' : 'text-zinc-500'
             }`}
           >
-            <UserIcon className="w-5 h-5 md:w-5.5 md:h-5.5" />
-            <span className="text-[9px] font-black mt-1">{MM.navProfile}</span>
+            <MessageSquare className="w-5 h-5 shrink-0" />
+            <span className="text-[9px] font-black mt-1 uppercase tracking-wider">{MM.navChat}</span>
           </button>
  
           <button
             id="mobile-nav-notifications"
             onClick={() => setActiveTab('notifications')}
-            className={`flex flex-col items-center justify-center py-1.5 w-16 rounded-none transition ${
+            className={`flex-1 flex flex-col items-center justify-center py-2 rounded-none transition whitespace-nowrap ${
               activeTab === 'notifications' ? 'text-lime-600 font-bold scale-105' : 'text-zinc-500'
             }`}
           >
-            <Bell className="w-5 h-5 md:w-5.5 md:h-5.5" />
-            <span className="text-[9px] font-black mt-1">{MM.navNotifications}</span>
+            <Bell className="w-5 h-5 shrink-0" />
+            <span className="text-[9px] font-black mt-1 uppercase tracking-wider">{MM.navNotifications}</span>
+          </button>
+
+          <button
+            id="mobile-nav-profile"
+            onClick={() => setActiveTab('profile')}
+            className={`flex-1 flex flex-col items-center justify-center py-2 rounded-none transition whitespace-nowrap ${
+              activeTab === 'profile' ? 'text-lime-600 font-bold scale-105' : 'text-zinc-500'
+            }`}
+          >
+            <UserIcon className="w-5 h-5 shrink-0" />
+            <span className="text-[9px] font-black mt-1 uppercase tracking-wider">{MM.navProfile}</span>
           </button>
 
         </div>

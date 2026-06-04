@@ -14,7 +14,7 @@ import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
 import { UserProfile } from '../types';
 import { MM } from '../lib/locale';
 import { AVATARS } from '../lib/assets';
-import { Edit3, Check, X, LogOut, Award, User, Info, AlertCircle } from 'lucide-react';
+import { Edit3, Check, X, LogOut, Award, User, Info, AlertCircle, Upload, Image as ImageIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface ProfilePageProps {
@@ -27,12 +27,107 @@ export default function ProfilePage(props: ProfilePageProps) {
   const [displayName, setDisplayName] = useState(currentUser.displayName);
   const [bio, setBio] = useState(currentUser.bio || '');
   const [selectedAvatar, setSelectedAvatar] = useState(currentUser.photoURL);
-  const [customPhotoURL, setCustomPhotoURL] = useState('');
-  const [isCustomUrl, setIsCustomUrl] = useState(currentUser.photoURL.startsWith('http') && !AVATARS.includes(currentUser.photoURL));
+  const [dragActive, setDragActive] = useState(false);
   const [postCount, setPostCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
+
+  // Drag and drop handlers for profile image upload
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      processImageFile(file);
+    }
+  };
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processImageFile(file);
+    }
+  };
+
+  const processImageFile = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setError("Please select an image file (PNG, JPG, etc.)");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Image size must be less than 10MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_DIM = 160; // Perfect, lightweight size for fast loading & fits inside Firestore seamlessly
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_DIM) {
+            height = Math.round((height * MAX_DIM) / width);
+            width = MAX_DIM;
+          }
+        } else {
+          if (height > MAX_DIM) {
+            width = Math.round((width * MAX_DIM) / height);
+            height = MAX_DIM;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          try {
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.82);
+            setSelectedAvatar(compressedBase64);
+            setError(null);
+          } catch (canvasErr) {
+            console.error("Canvas read failed:", canvasErr);
+            if (event.target?.result) {
+              setSelectedAvatar(event.target.result as string);
+            }
+          }
+        } else {
+          if (event.target?.result) {
+            setSelectedAvatar(event.target.result as string);
+          }
+        }
+      };
+      img.onerror = () => {
+        setError("Failed to load image file");
+      };
+      if (event.target?.result) {
+        img.src = event.target.result as string;
+      }
+    };
+    reader.onerror = () => {
+      setError("Failed to read image file");
+    };
+    reader.readAsDataURL(file);
+  };
 
   // 1. Calculate real-time total posts from this user
   useEffect(() => {
@@ -59,7 +154,7 @@ export default function ProfilePage(props: ProfilePageProps) {
     setLoading(true);
     setError(null);
 
-    const finalPhoto = isCustomUrl ? (customPhotoURL.trim() || selectedAvatar) : selectedAvatar;
+    const finalPhoto = selectedAvatar;
     const userRef = doc(db, 'users', currentUser.id);
 
     try {
@@ -169,12 +264,6 @@ export default function ProfilePage(props: ProfilePageProps) {
                 setDisplayName(currentUser.displayName);
                 setBio(currentUser.bio || '');
                 setSelectedAvatar(currentUser.photoURL);
-                if (!AVATARS.includes(currentUser.photoURL)) {
-                  setCustomPhotoURL(currentUser.photoURL);
-                  setIsCustomUrl(true);
-                } else {
-                  setIsCustomUrl(false);
-                }
               }}
               className="px-4 py-2 bg-zinc-150 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-750 text-zinc-800 dark:text-zinc-200 font-bold text-xs rounded-none flex items-center space-x-1.5 transition duration-200 border border-zinc-305 dark:border-zinc-700"
             >
@@ -245,31 +334,12 @@ export default function ProfilePage(props: ProfilePageProps) {
               />
             </div>
 
-            {/* Custom Avatar toggler */}
-            <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label className="block text-xs font-semibold text-lime-400 uppercase tracking-wider">
-                  {MM.avatarLabel}
+            {/* Custom Avatar choosing UI */}
+            <div className="space-y-4.5">
+              <div>
+                <label className="block text-xs font-semibold text-lime-400 uppercase tracking-wider mb-2">
+                  1. Select from sample avatars
                 </label>
-                <button
-                  type="button"
-                  onClick={() => setIsCustomUrl(!isCustomUrl)}
-                  className="text-[10px] text-lime-400 hover:underline transition"
-                >
-                  {isCustomUrl ? 'Select from sample avatars' : 'Enter external image URL'}
-                </button>
-              </div>
-
-              {isCustomUrl ? (
-                <input
-                  id="edit-profile-avatar-url"
-                  type="url"
-                  value={customPhotoURL}
-                  onChange={(e) => setCustomPhotoURL(e.target.value)}
-                  placeholder="https://example.com/me.jpg"
-                  className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-none text-xs focus:outline-none focus:border-lime-500 transition text-zinc-105"
-                />
-              ) : (
                 <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 bg-zinc-50/60 dark:bg-zinc-950/40 p-3 border border-zinc-200 dark:border-zinc-800 rounded-none">
                   {AVATARS.map((url, idx) => (
                     <button
@@ -292,7 +362,71 @@ export default function ProfilePage(props: ProfilePageProps) {
                     </button>
                   ))}
                 </div>
-              )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-lime-400 uppercase tracking-wider mb-2">
+                  2. Or Upload from device
+                </label>
+                
+                <div 
+                  className={`border border-dashed p-5 text-center transition duration-200 rounded-none ${
+                    dragActive 
+                      ? 'border-lime-500 bg-lime-500/5 dark:bg-lime-500/10' 
+                      : 'border-zinc-305 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-950/20 hover:border-zinc-400 dark:hover:border-zinc-700'
+                  }`}
+                  onDragEnter={handleDrag}
+                  onDragOver={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDrop={handleDrop}
+                >
+                  <input
+                    id="profile-device-file-input"
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageFileChange}
+                  />
+                  <label 
+                    htmlFor="profile-device-file-input"
+                    className="cursor-pointer flex flex-col items-center justify-center space-y-2 h-full"
+                  >
+                    <div className="w-9 h-9 rounded-none bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-zinc-500 dark:text-zinc-400 transition">
+                      <Upload className="w-4 h-4" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                        Drag and drop your image, or <span className="text-lime-500 hover:underline">browse</span>
+                      </p>
+                      <p className="text-[10px] text-zinc-400 mt-1">
+                        Supports PNG, JPG, WEBP. Automatic lightweight optimization enabled.
+                      </p>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Show Preview if custom image is selected */}
+                {!AVATARS.includes(selectedAvatar) && (
+                  <div className="mt-3.5 flex items-center space-x-3 p-3 bg-zinc-50/50 dark:bg-zinc-950/20 border border-zinc-200 dark:border-zinc-850">
+                    <img 
+                      src={selectedAvatar} 
+                      alt="Uploaded Avatar Preview"
+                      className="w-12 h-12 rounded-none object-cover border border-zinc-200 dark:border-zinc-800 bg-zinc-800"
+                    />
+                    <div>
+                      <span className="text-xs font-bold text-zinc-750 dark:text-zinc-250 block">Your Custom Uploaded Image</span>
+                      <span className="text-[10px] text-zinc-400">Successfully loaded and ready to save</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedAvatar(AVATARS[0])}
+                      className="ml-auto text-[10px] text-red-500 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex justify-end space-x-2 pt-2 border-t border-zinc-50 dark:border-zinc-850">

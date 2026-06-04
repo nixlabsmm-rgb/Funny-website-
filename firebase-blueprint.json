@@ -18,7 +18,8 @@
           "properties": {
             "newPost": { "type": "boolean" },
             "newReaction": { "type": "boolean" },
-            "newComment": { "type": "boolean" }
+            "newComment": { "type": "boolean" },
+            "newMessage": { "type": "boolean" }
           }
         }
       },
@@ -69,12 +70,44 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "userId", "userName", "text", "createdAt"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "A direct chat message.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "senderPhoto": { "type": "string" },
+        "receiverId": { "type": "string" },
+        "text": { "type": "string" },
+        "audioUrl": { "type": "string", "description": "Base64 data URL encoded audio file." },
+        "audioDuration": { "type": "number", "description": "Duration in seconds." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "reactions": { "type": "object", "description": "Key-value pair where key is user ID and value is the emoji react." }
+      },
+      "required": ["id", "senderId", "senderName", "receiverId", "createdAt"]
+    },
+    "Mute": {
+      "title": "Muted User",
+      "description": "Muted peer configuration.",
+      "type": "object",
+      "properties": {
+        "muted": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["muted", "createdAt"]
     }
   },
   "firestore": {
     "users/{userId}": {
       "schema": "User",
       "description": "User profiles and settings."
+    },
+    "users/{userId}/muted/{peerId}": {
+      "schema": "Mute",
+      "description": "Muted other users for chat settings."
     },
     "posts/{postId}": {
       "schema": "Post",
@@ -87,6 +120,10 @@
     "posts/{postId}/comments/{commentId}": {
       "schema": "Comment",
       "description": "User comments on specific posts."
+    },
+    "chats/{chatId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Messages inside a direct chat channel."
     }
   }
 }

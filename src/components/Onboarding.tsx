@@ -46,7 +46,8 @@ export default function Onboarding(props: OnboardingProps) {
       notificationSettings: {
         newPost: true,
         newReaction: true,
-        newComment: true
+        newComment: true,
+        newMessage: true
       }
     };
 
