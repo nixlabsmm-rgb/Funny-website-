@@ -496,19 +496,23 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
         
         const textToDisplay = incoming.audioUrl ? '🎤 Voice Message' : incoming.text;
         const senderDetails = getSenderInfo(incoming.senderId, incoming.senderName, incoming.senderPhoto);
-        triggerWebNotification(senderDetails.displayName, textToDisplay, senderDetails.photoURL);
+        
+        // Filter out Voice Messages from browser & in-app banner notifications
+        if (!incoming.audioUrl) {
+          triggerWebNotification(senderDetails.displayName, textToDisplay, senderDetails.photoURL);
 
-        setIncomingNotiBanner({
-          senderName: senderDetails.displayName,
-          senderPhoto: senderDetails.photoURL,
-          text: textToDisplay,
-          peerId: incoming.senderId
-        });
+          setIncomingNotiBanner({
+            senderName: senderDetails.displayName,
+            senderPhoto: senderDetails.photoURL,
+            text: textToDisplay,
+            peerId: incoming.senderId
+          });
 
-        if (notiBannerTimeoutRef.current) clearTimeout(notiBannerTimeoutRef.current);
-        notiBannerTimeoutRef.current = setTimeout(() => {
-          setIncomingNotiBanner(null);
-        }, 4500);
+          if (notiBannerTimeoutRef.current) clearTimeout(notiBannerTimeoutRef.current);
+          notiBannerTimeoutRef.current = setTimeout(() => {
+            setIncomingNotiBanner(null);
+          }, 4500);
+        }
       }
     }, (error) => {
       console.error("Error fetching messages: ", error);
@@ -771,7 +775,7 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
                           ? 'text-lime-500 font-bold bg-lime-500/10' 
                           : 'text-zinc-400 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/45 dark:border-zinc-800'
                       }`}>
-                        {isOnline ? 'Circle' : 'Rectangle'}
+                        {isOnline ? 'Online' : 'Offline'}
                       </span>
                     </div>
                   </div>
@@ -816,12 +820,12 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
                           {isResolvedPeerOnline ? (
                             <>
                               <span className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse inline-block" />
-                              <span className="text-lime-500 font-bold">Online Now / Circle</span>
+                              <span className="text-lime-500 font-bold">Online</span>
                             </>
                           ) : (
                             <>
                               <span className="w-1.5 h-1.5 rounded-none bg-zinc-400/70 inline-block" />
-                              <span>Not Online / Rectangle</span>
+                              <span className="text-zinc-500">Offline</span>
                             </>
                           )}
                         </span>
@@ -831,17 +835,7 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
                 })()}
               </div>
               
-              {/* Top Active configurations status widget */}
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shrink-0 select-none shadow-xs">
-                {(() => {
-                  const isResolvedPeerOnline = !!(resolvedPeer?.lastActiveAt && (Date.now() - resolvedPeer.lastActiveAt < 45000));
-                  return isResolvedPeerOnline ? (
-                    <Circle className="w-3.5 h-3.5 text-lime-500 shrink-0 fill-current" />
-                  ) : (
-                    <Square className="w-3 h-3 text-amber-500 shrink-0 fill-current" />
-                  );
-                })()}
-              </div>
+
             </div>
 
             {/* Conversation list segment */}
