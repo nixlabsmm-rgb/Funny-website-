@@ -115,7 +115,7 @@ function VoiceMessagePlayer({ audioUrl, duration }: { audioUrl: string; duration
       </button>
 
       <div className="flex-1 space-y-1">
-        <div className="w-full bg-zinc-200 dark:bg-zinc-850 h-1.5 rounded-none overflow-hidden relative">
+        <div className="w-full bg-zinc-200 dark:bg-zinc-800 h-1.5 rounded-none overflow-hidden relative">
           <div 
             className="bg-lime-500 h-full transition-all duration-75"
             style={{ width: `${progress}%` }}
@@ -158,6 +158,15 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
   const lastAlertedMessageIdRef = useRef<string | null>(null);
   const componentMountedAt = useRef<number>(Date.now());
   const notiBannerTimeoutRef = useRef<any>(null);
+
+  // Periodic refresh interval to keep online/offline shapes updated instantly
+  const [presenceTick, setPresenceTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPresenceTick(t => t + 1);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Request system notification permission on boot
   useEffect(() => {
@@ -368,6 +377,7 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
             bio: u.bio || '',
             onboarded: u.onboarded || false,
             createdAt: u.createdAt,
+            lastActiveAt: u.lastActiveAt,
             notificationSettings: {
               newPost: u.notificationSettings?.newPost ?? true,
               newReaction: u.notificationSettings?.newReaction ?? true,
@@ -654,7 +664,7 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
             animate={{ opacity: 1, y: 16 }}
             exit={{ opacity: 0, y: -80 }}
             transition={{ type: 'spring', stiffness: 220, damping: 22 }}
-            className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[999] bg-white dark:bg-zinc-900 border border-zinc-205 dark:border-zinc-850 p-3 min-w-[290px] max-w-[92vw] shadow-2xl flex items-center gap-3 font-sans border-l-4 border-l-lime-500 hover:scale-[1.01] transition-all"
+            className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[999] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-3 min-w-[290px] max-w-[92vw] shadow-2xl flex items-center gap-3 font-sans border-l-4 border-l-lime-500 hover:scale-[1.01] transition-all"
             style={{ pointerEvents: 'auto' }}
           >
             <div className="relative">
@@ -700,13 +710,13 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
               placeholder={MM.chatSearchPlaceholder}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-850 rounded-none text-xs focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500/20 text-zinc-900 dark:text-zinc-100"
+              className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-none text-xs focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500/20 text-zinc-900 dark:text-zinc-100"
             />
           </div>
         </div>
 
         {/* Contacts scrolling body */}
-        <div className="flex-1 overflow-y-auto divide-y divide-zinc-200/50 dark:divide-zinc-850/50">
+        <div className="flex-1 overflow-y-auto divide-y divide-zinc-200/50 dark:divide-zinc-800/50">
           {filteredUsers.length === 0 ? (
             <div className="p-8 text-center text-xs text-zinc-400 font-mono">
               No contacts found
@@ -714,6 +724,7 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
           ) : (
             filteredUsers.map(peer => {
               const isCircle = circleUsers.has(peer.id);
+              const isOnline = !!(peer.lastActiveAt && (Date.now() - peer.lastActiveAt < 45000));
               return (
                 <div 
                   key={peer.id}
@@ -728,7 +739,7 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
                     src={peer.photoURL} 
                     alt={peer.displayName} 
                     className={`w-10 h-10 object-cover border transition-all duration-300 ${
-                      isCircle 
+                      isOnline 
                         ? 'rounded-full border-lime-500 shadow-sm shadow-lime-500/20' 
                         : 'rounded-none border-zinc-300 dark:border-zinc-700'
                     }`}
@@ -755,6 +766,13 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
                     </div>
                     <div className="flex items-center gap-1.5 mt-1">
                       <span className="text-[10px] text-zinc-400 truncate flex-1 block">{peer.bio || 'Cozy peer'}</span>
+                      <span className={`text-[9px] font-mono shrink-0 uppercase tracking-wider px-1 py-0.5 leading-none ${
+                        isOnline 
+                          ? 'text-lime-500 font-bold bg-lime-500/10' 
+                          : 'text-zinc-400 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/45 dark:border-zinc-800'
+                      }`}>
+                        {isOnline ? 'Circle' : 'Rectangle'}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -774,35 +792,55 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
                 {/* Back button for mobile preview */}
                 <button 
                   onClick={() => setSelectedPeer(null)}
-                  className="md:hidden p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 border border-zinc-200 dark:border-zinc-850 rounded-none text-zinc-600 dark:text-zinc-400 mr-1"
+                  className="md:hidden p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-none text-zinc-600 dark:text-zinc-400 mr-1"
                 >
                   <ArrowLeft className="w-4 h-4" />
                 </button>
 
-                <img 
-                  src={resolvedPeer?.photoURL || selectedPeer.photoURL} 
-                  alt={resolvedPeer?.displayName || selectedPeer.displayName}
-                  className={`w-10 h-10 object-cover border transition-all duration-300 ${
-                    circleUsers.has(selectedPeer.id)
-                      ? 'rounded-full border-lime-500 shadow-sm shadow-lime-500/20'
-                      : 'rounded-none border-zinc-350 dark:border-zinc-700'
-                  }`}
-                />
-                <div className="min-w-0">
-                  <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-50 truncate">{resolvedPeer?.displayName || selectedPeer.displayName}</h4>
-                  <span className="text-[10px] text-zinc-400 font-mono flex items-center gap-1">
-                    <Check className="w-3 h-3 text-lime-500 shrink-0 animate-pulse" /> Real-time Connected
-                  </span>
-                </div>
+                {(() => {
+                  const isResolvedPeerOnline = !!(resolvedPeer?.lastActiveAt && (Date.now() - resolvedPeer.lastActiveAt < 45000));
+                  return (
+                    <>
+                      <img 
+                        src={resolvedPeer?.photoURL || selectedPeer.photoURL} 
+                        alt={resolvedPeer?.displayName || selectedPeer.displayName}
+                        className={`w-10 h-10 object-cover border transition-all duration-300 ${
+                          isResolvedPeerOnline
+                            ? 'rounded-full border-lime-500 shadow-sm shadow-lime-500/20'
+                            : 'rounded-none border-zinc-300 dark:border-zinc-700'
+                        }`}
+                      />
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-50 truncate">{resolvedPeer?.displayName || selectedPeer.displayName}</h4>
+                        <span className="text-[10px] text-zinc-400 font-mono flex items-center gap-1">
+                          {isResolvedPeerOnline ? (
+                            <>
+                              <span className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse inline-block" />
+                              <span className="text-lime-500 font-bold">Online Now / Circle</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="w-1.5 h-1.5 rounded-none bg-zinc-400/70 inline-block" />
+                              <span>Not Online / Rectangle</span>
+                            </>
+                          )}
+                        </span>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
               
               {/* Top Active configurations status widget */}
               <div className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shrink-0 select-none shadow-xs">
-                {circleUsers.has(selectedPeer.id) ? (
-                  <Circle className="w-3.5 h-3.5 text-lime-500 shrink-0 fill-current" />
-                ) : (
-                  <Square className="w-3 h-3 text-amber-500 shrink-0 fill-current" />
-                )}
+                {(() => {
+                  const isResolvedPeerOnline = !!(resolvedPeer?.lastActiveAt && (Date.now() - resolvedPeer.lastActiveAt < 45000));
+                  return isResolvedPeerOnline ? (
+                    <Circle className="w-3.5 h-3.5 text-lime-500 shrink-0 fill-current" />
+                  ) : (
+                    <Square className="w-3 h-3 text-amber-500 shrink-0 fill-current" />
+                  );
+                })()}
               </div>
             </div>
 
@@ -810,7 +848,7 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
             <div className="flex-1 overflow-y-auto p-4 space-y-4 font-sans bg-zinc-50/10 dark:bg-black/10">
               {messages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-3">
-                  <div className="w-12 h-12 rounded-none border border-zinc-200 dark:border-zinc-850 flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 text-zinc-400">
+                  <div className="w-12 h-12 rounded-none border border-zinc-200 dark:border-zinc-800 flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 text-zinc-400">
                     <MessageSquare className="w-5 h-5 text-lime-500" />
                   </div>
                   <p className="text-xs text-zinc-500 max-w-xs">{MM.chatNoMessages}</p>
@@ -844,7 +882,7 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
                           className={`p-3 border text-xs leading-relaxed break-words rounded-none select-none relative cursor-pointer active:scale-[0.98] transition-all duration-100 ease-out origin-center ${
                             isOwn 
                               ? 'bg-lime-500 border-lime-600/20 text-black font-semibold hover:bg-lime-400' 
-                              : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-850 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-850'
+                              : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800'
                           }`}
                           onMouseDown={() => startHoldTimer(msg.id)}
                           onMouseUp={clearHoldTimer}
@@ -868,7 +906,7 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
                                 } ${isOwn ? 'right-0' : 'left-0'}`}
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                <div className="flex items-center justify-between border-b border-zinc-150 dark:border-zinc-850 pb-1.5 mb-1 px-1.5">
+                                <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-1.5 mb-1 px-1.5 font-mono">
                                   <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 font-mono tracking-widest uppercase">OPTIONS</span>
                                   <button 
                                     type="button"
@@ -994,7 +1032,7 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
 
                         {/* Reaction badges pill below the bubble */}
                         {msg.reactions && Object.keys(msg.reactions).length > 0 && (
-                          <div className={`flex items-center gap-1 p-0.5 px-1.5 border text-[10px] bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-750 select-none shadow-xs relative -mt-1 rounded-none max-w-max ${
+                          <div className={`flex items-center gap-1 p-0.5 px-1.5 border text-[10px] bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 select-none shadow-xs relative -mt-1 rounded-none max-w-max ${
                             isOwn ? 'ml-auto mr-1' : 'mr-auto ml-1'
                           }`}>
                             {Object.entries(msg.reactions).map(([userId, emo], idx) => {
@@ -1033,17 +1071,17 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
             </div>
 
             {/* Clear 3-day text auto-deletion warning banner */}
-            <div className="px-4 py-2 bg-amber-500/5 dark:bg-amber-500/10 border-t border-b border-zinc-200 dark:border-zinc-800 text-[10px] text-amber-600 dark:text-amber-400 font-mono flex items-center select-none shrink-0 justify-between gap-2">
+            <div className="px-4 py-2 bg-emerald-500/10 dark:bg-emerald-900/20 border-t border-b border-zinc-200 dark:border-zinc-800 text-[10px] text-emerald-700 dark:text-emerald-300 font-mono flex items-center select-none shrink-0 justify-between gap-2">
               <div className="flex items-center gap-1.5 leading-none">
                 <Clock className="w-3.5 h-3.5 animate-pulse shrink-0" />
-                <span>Text messages are automatically deleted 3 days after being sent. Voice messages are kept.</span>
+                <span>messages will auto delete after 3 days</span>
               </div>
             </div>
 
             {/* Input interaction bar */}
             <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 shrink-0 bg-white dark:bg-black">
               {!circleUsers.has(selectedPeer.id) ? (
-                <div className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-zinc-500 select-none">
+                <div className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-zinc-500 select-none">
                   <div className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300 leading-relaxed text-[11px] sm:text-xs">
                     <Square className="w-4 h-4 text-amber-500 shrink-0 animate-pulse fill-current" />
                     <span>This peer is restricted from sending messages. Enable them to chat.</span>
@@ -1058,27 +1096,31 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
                   </button>
                 </div>
               ) : isRecording ? (
-                <div className="flex items-center justify-between bg-red-500/10 border border-red-500/20 p-2 text-xs text-red-500 font-mono">
+                <div className="relative flex items-center justify-between bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-3 shadow-md select-none overflow-hidden">
                   <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 bg-red-500 animate-ping rounded-none shrink-0" />
-                    <span>{MM.chatRecording}</span>
-                    <span className="font-bold font-mono">({recordingSeconds}s)</span>
+                    <span className="text-xs font-mono font-bold text-zinc-800 dark:text-zinc-200">
+                      Recording/{Math.floor(recordingSeconds / 60).toString().padStart(2, '0')}:{(recordingSeconds % 60).toString().padStart(2, '0')}
+                    </span>
                   </div>
-                  
-                  <div className="flex items-center gap-1.5">
-                    {/* Trash voice record / Cancel */}
+
+                  {/* Recording Controls */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    {/* WHITE CANCEL BUTTON - NO LOGO OR EMOJI */}
                     <button 
+                      type="button"
                       onClick={handleCancelRecording}
-                      className="px-3 py-1.5 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 cursor-pointer transition flex items-center gap-1 font-bold text-[10px]"
+                      className="px-4 py-1.5 bg-white hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 font-bold text-xs cursor-pointer transition uppercase rounded-none"
                     >
-                      <Trash2 className="w-3.5 h-3.5" /> CANCEL
+                      Cancel
                     </button>
-                    {/* Done / Stop & Send */}
+
+                    {/* GREEN SEND BUTTON - NO LOGO OR EMOJI */}
                     <button 
+                      type="button"
                       onClick={handleStopRecording}
-                      className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white border border-red-700 cursor-pointer transition flex items-center gap-1 font-bold text-[10px]"
+                      className="px-4 py-1.5 bg-lime-500 hover:bg-lime-400 dark:bg-lime-500 dark:hover:bg-lime-400 text-black font-bold text-xs border border-lime-600/30 dark:border-lime-500/35 cursor-pointer transition shadow-md uppercase rounded-none"
                     >
-                      <Square className="w-3 h-3 fill-current" /> STOP & SEND
+                      Send
                     </button>
                   </div>
                 </div>
@@ -1089,7 +1131,7 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
                     type="button"
                     onClick={handleStartRecording}
                     title="Record voice message"
-                    className="p-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-850 hover:border-lime-500 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 transition shrink-0 cursor-pointer relative"
+                    className="p-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 hover:border-lime-500 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 transition shrink-0 cursor-pointer relative"
                   >
                     <Mic className="w-4 h-4 text-lime-500 hover:scale-110 transition duration-150" />
                   </button>
@@ -1099,7 +1141,7 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
                     placeholder={MM.chatTypeMessagePlaceholder}
                     value={inputText}
                     onChange={e => setInputText(e.target.value)}
-                    className="flex-1 px-4 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-none text-xs focus:outline-none focus:border-lime-500 text-zinc-900 dark:text-zinc-100"
+                    className="flex-1 px-4 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-none text-xs focus:outline-none focus:border-lime-500 text-zinc-900 dark:text-zinc-100"
                   />
 
                   <button 

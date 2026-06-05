@@ -14,6 +14,7 @@ export interface UserProfile {
   createdAt: any; // Firestore Timestamp
   updatedAt?: any;
   notificationSettings: NotificationSettings;
+  lastActiveAt?: number;
 }
 
 export interface Post {

@@ -53,15 +53,12 @@ export default function Login(props: LoginProps) {
               referrerPolicy="no-referrer"
             />
           </div>
-          <h1 className="text-4xl font-myanmar font-black tracking-normal leading-relaxed bg-gradient-to-r from-lime-400 via-emerald-300 to-green-400 bg-clip-text text-transparent filter drop-shadow-[0_2px_8px_rgba(132,204,22,0.3)]">
+          <h1 className="-mt-3 text-4xl font-myanmar font-black tracking-normal leading-relaxed bg-gradient-to-r from-lime-400 via-emerald-300 to-green-400 bg-clip-text text-transparent filter drop-shadow-[0_2px_8px_rgba(132,204,22,0.3)]">
             {MM.appName}
           </h1>
-          <span className="text-[11px] text-lime-400 font-bold tracking-wide mt-2.5 mb-3 bg-lime-950/20 px-3 py-0.5 rounded-none border border-lime-800/30">
-            Myanmar Social Net
+          <span className="text-[10px] text-lime-400 font-bold tracking-wide -mt-4 mb-2 relative z-20 bg-lime-950/20 flex items-center justify-center w-[90px] h-[17px] rounded-none border border-lime-800/30">
+            By Fimtty (Nix)
           </span>
-          <p className="text-sm text-zinc-400 max-w-xs leading-relaxed px-2 font-sans">
-            {MM.appSlogan}
-          </p>
         </div>
 
         {/* Content Box */}
@@ -70,7 +67,7 @@ export default function Login(props: LoginProps) {
             <h2 className="text-base font-bold text-zinc-200">
               {MM.loginTitle}
             </h2>
-            <p className="text-xs text-zinc-500 px-4 mt-1">
+            <p className="text-[8px] text-zinc-400 px-4 mt-2 leading-relaxed whitespace-pre-line text-center">
               {MM.loginSubtitle}
             </p>
           </div>

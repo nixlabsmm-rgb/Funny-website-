@@ -30,7 +30,8 @@ service cloud.firestore {
         && data.onboarded is bool
         && (!('bio' in data) || (data.bio is string && data.bio.size() <= 500))
         && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 1048576))
-        && (!('notificationSettings' in data) || (data.notificationSettings is map));
+        && (!('notificationSettings' in data) || (data.notificationSettings is map))
+        && (!('lastActiveAt' in data) || (data.lastActiveAt is int));
     }
 
     function isValidPost(data) {
@@ -75,7 +76,12 @@ service cloud.firestore {
       allow get: if isSignedIn();
       allow list: if isSignedIn();
       allow create: if isOwner(userId) && isValidUser(incoming()) && incoming().createdAt == request.time;
-      allow update: if isOwner(userId) && isValidUser(incoming()) && incoming().updatedAt == request.time;
+      allow update: if isOwner(userId) && (
+        // Action 1: Standard profile update with server timestamp
+        (isValidUser(incoming()) && incoming().updatedAt == request.time && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'bio', 'photoURL', 'onboarded', 'notificationSettings', 'updatedAt', 'lastActiveAt'])) ||
+        // Action 2: Presence heartbeat updating only lastActiveAt
+        (incoming().diff(existing()).affectedKeys().hasOnly(['lastActiveAt']) && incoming().lastActiveAt is int)
+      );
       allow delete: if false; // Profiles are not deleted in this app flow
     }
 

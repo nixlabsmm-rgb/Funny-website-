@@ -208,7 +208,7 @@ export default function ProfilePage(props: ProfilePageProps) {
   return (
     <div id="profile-container" className="space-y-6">
       {/* Profile Header Block */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-150 dark:border-zinc-805 rounded-none p-6 sm:p-8 shadow-sm relative overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-none p-6 sm:p-8 shadow-sm relative overflow-hidden">
         {/* Glowing top highlight */}
         <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-lime-600 via-lime-550 to-emerald-600" />
 
@@ -265,7 +265,7 @@ export default function ProfilePage(props: ProfilePageProps) {
                 setBio(currentUser.bio || '');
                 setSelectedAvatar(currentUser.photoURL);
               }}
-              className="px-4 py-2 bg-zinc-150 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-750 text-zinc-800 dark:text-zinc-200 font-bold text-xs rounded-none flex items-center space-x-1.5 transition duration-200 border border-zinc-305 dark:border-zinc-700"
+              className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-bold text-xs rounded-none flex items-center space-x-1.5 transition duration-200 border border-zinc-300 dark:border-zinc-700"
             >
               <Edit3 className="w-3.5 h-3.5" />
               <span>{editing ? MM.profileCancelBtn : MM.profileEditBtn}</span>
@@ -290,9 +290,9 @@ export default function ProfilePage(props: ProfilePageProps) {
           id="profile-editing-form-card"
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white dark:bg-zinc-900 border border-zinc-150 dark:border-zinc-850 rounded-none p-5 sm:p-6 shadow-sm space-y-4"
+          className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-none p-5 sm:p-6 shadow-sm space-y-4"
         >
-          <div className="flex items-center space-x-2 font-black text-sm text-lime-400 pb-2 border-b border-zinc-50 dark:border-zinc-850">
+          <div className="flex items-center space-x-2 font-black text-sm text-lime-400 pb-2 border-b border-zinc-100 dark:border-zinc-800">
             <User className="w-4 h-4" />
             <span>{MM.profileEditBtn}</span>
           </div>
@@ -373,7 +373,7 @@ export default function ProfilePage(props: ProfilePageProps) {
                   className={`border border-dashed p-5 text-center transition duration-200 rounded-none ${
                     dragActive 
                       ? 'border-lime-500 bg-lime-500/5 dark:bg-lime-500/10' 
-                      : 'border-zinc-305 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-950/20 hover:border-zinc-400 dark:hover:border-zinc-700'
+                      : 'border-zinc-300 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-950/20 hover:border-zinc-400 dark:hover:border-zinc-700'
                   }`}
                   onDragEnter={handleDrag}
                   onDragOver={handleDrag}
@@ -407,14 +407,14 @@ export default function ProfilePage(props: ProfilePageProps) {
 
                 {/* Show Preview if custom image is selected */}
                 {!AVATARS.includes(selectedAvatar) && (
-                  <div className="mt-3.5 flex items-center space-x-3 p-3 bg-zinc-50/50 dark:bg-zinc-950/20 border border-zinc-200 dark:border-zinc-850">
+                  <div className="mt-3.5 flex items-center space-x-3 p-3 bg-zinc-50/50 dark:bg-zinc-950/20 border border-zinc-200 dark:border-zinc-800">
                     <img 
                       src={selectedAvatar} 
                       alt="Uploaded Avatar Preview"
                       className="w-12 h-12 rounded-none object-cover border border-zinc-200 dark:border-zinc-800 bg-zinc-800"
                     />
                     <div>
-                      <span className="text-xs font-bold text-zinc-750 dark:text-zinc-250 block">Your Custom Uploaded Image</span>
+                      <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 block">Your Custom Uploaded Image</span>
                       <span className="text-[10px] text-zinc-400">Successfully loaded and ready to save</span>
                     </div>
                     <button
@@ -429,11 +429,11 @@ export default function ProfilePage(props: ProfilePageProps) {
               </div>
             </div>
 
-            <div className="flex justify-end space-x-2 pt-2 border-t border-zinc-50 dark:border-zinc-850">
+            <div className="flex justify-end space-x-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="px-4 py-2 border border-zinc-205 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-500 rounded-none text-xs font-semibold transition"
+                className="px-4 py-2 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-500 rounded-none text-xs font-semibold transition"
               >
                 {MM.profileCancelBtn}
               </button>
@@ -493,6 +493,16 @@ export default function ProfilePage(props: ProfilePageProps) {
           </motion.div>
         </div>
       )}
+      <div className="flex justify-center pt-8 pb-4">
+        <a 
+          href="https://t.me/fimtty" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-[10px] text-zinc-400 hover:text-lime-500 transition font-mono"
+        >
+          By Fimtty (Nix)
+        </a>
+      </div>
     </div>
   );
 }

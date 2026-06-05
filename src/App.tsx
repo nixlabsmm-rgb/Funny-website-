@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { auth, db } from './lib/firebase';
 import { UserProfile, AppTab } from './types';
 import { MM } from './lib/locale';
@@ -14,7 +14,7 @@ import Onboarding from './components/Onboarding';
 import FeedPage from './components/FeedPage';
 import ProfilePage from './components/ProfilePage';
 import NotificationSettingsPage from './components/NotificationSettingsPage';
-import { Globe, Rss, User as UserIcon, Bell, Moon, Sun, Monitor, AlertTriangle, MessageSquare } from 'lucide-react';
+import { Globe, Rss, User as UserIcon, Bell, Monitor, AlertTriangle, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import socialLogo from './assets/images/social_logo_1780482522011.png';
 import ChatPage from './components/ChatPage';
@@ -34,28 +34,28 @@ export default function App() {
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     
-    // Initial sync
-    const syncTheme = (matchesDark: boolean) => {
-      setIsDark(matchesDark);
-      if (matchesDark) {
-        document.documentElement.classList.add('dark');
-        document.documentElement.style.backgroundColor = '#000000';
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.documentElement.style.backgroundColor = '#f4f4f5';
-      }
-    };
+    // Set initial theme state
+    setIsDark(mediaQuery.matches);
 
-    syncTheme(mediaQuery.matches);
-
-    // Watcher
+    // Watcher for system theme change
     const handleThemeChange = (e: MediaQueryListEvent) => {
-      syncTheme(e.matches);
+      setIsDark(e.matches);
     };
 
     mediaQuery.addEventListener('change', handleThemeChange);
     return () => mediaQuery.removeEventListener('change', handleThemeChange);
   }, []);
+
+  // Sync state to DOM whenever isDark changes
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.style.backgroundColor = '#000000';
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.style.backgroundColor = '#f4f4f5';
+    }
+  }, [isDark]);
 
   // 2. Watch User Authenticated state & retrieve realtime UserProfile Document
   useEffect(() => {
@@ -79,6 +79,7 @@ export default function App() {
               bio: data.bio || '',
               onboarded: data.onboarded || false,
               createdAt: data.createdAt,
+              lastActiveAt: data.lastActiveAt,
               notificationSettings: {
                 newPost: data.notificationSettings?.newPost ?? true,
                 newReaction: data.notificationSettings?.newReaction ?? true,
@@ -110,6 +111,36 @@ export default function App() {
       if (unsubscribeProfile) unsubscribeProfile();
     };
   }, []);
+
+  // Real-time presence heartbeat to track active website usage
+  useEffect(() => {
+    if (!user || !profile || !profile.onboarded) return;
+
+    const userRef = doc(db, 'users', user.uid);
+    const updatePresence = () => {
+      updateDoc(userRef, { lastActiveAt: Date.now() }).catch((err) => {
+        console.error("Presence update error:", err);
+      });
+    };
+
+    // Update immediately on mount/login
+    updatePresence();
+
+    // Pulse heartbeat every 15 seconds to stay fresh (max 45 seconds tolerance)
+    const interval = setInterval(updatePresence, 15000);
+
+    // Also update on window focus to feel incredibly fast and responsive
+    const handleFocus = () => {
+      updatePresence();
+    };
+
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [user, profile?.onboarded]);
 
   // Handle Loading Screen
   if (authLoading || (user && profileLoading)) {
@@ -298,30 +329,6 @@ export default function App() {
               )}
             </div>
           </div>
-
-          <div className="flex items-center space-x-2 relative top-[4px]">
-            <button
-              onClick={() => {
-                const nextDark = !isDark;
-                setIsDark(nextDark);
-                if (nextDark) {
-                  document.documentElement.classList.add('dark');
-                  document.documentElement.style.backgroundColor = '#000000';
-                } else {
-                  document.documentElement.classList.remove('dark');
-                  document.documentElement.style.backgroundColor = '#f4f4f5';
-                }
-              }}
-              title="Toggle theme"
-              className="p-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 rounded-none border border-zinc-200 dark:border-zinc-800 transition cursor-pointer"
-            >
-              {isDark ? (
-                <Moon className="w-4 h-4 text-lime-450 dark:text-lime-400" />
-              ) : (
-                <Sun className="w-4 h-4 text-lime-600" />
-              )}
-            </button>
-          </div>
         </header>
 
         {/* Central Feed/Page content container */}
@@ -364,7 +371,7 @@ export default function App() {
           </p>
           <button
             onClick={() => setActiveTab('profile')}
-            className="w-full mt-4 py-2 bg-zinc-100 hover:bg-zinc-200/80 dark:bg-zinc-900 dark:hover:bg-zinc-850 border border-zinc-200/60 dark:border-zinc-800 rounded-none text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:border-lime-500 hover:text-lime-600 transition duration-200 cursor-pointer"
+            className="w-full mt-4 py-2 bg-zinc-100 hover:bg-zinc-200/80 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-zinc-200/60 dark:border-zinc-800 rounded-none text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:border-lime-500 hover:text-lime-600 transition duration-200 cursor-pointer"
           >
             {MM.profileEditBtn}
           </button>

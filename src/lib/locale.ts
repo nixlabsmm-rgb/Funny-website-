@@ -1,8 +1,8 @@
 export const MM = {
   appName: "Pauk Pauk",
-  appSlogan: "The friendly community social network for everyone",
+  appSlogan: "",
   loginTitle: "Get Started",
-  loginSubtitle: "Sign in with Google to easily connect and share with friends",
+  loginSubtitle: "The friendly community social network for everyone.\nSign in with Google to easily connect and share with friends.",
   continueWithGoogle: "Continue with Google",
   loggingIn: "Logging in...",
   
@@ -74,8 +74,8 @@ export const MM = {
   chatMuteBtn: "Set Rectangle (Restrict)",
   chatUnmuteBtn: "Set Circle (Allow)",
   chatMutedLabel: "Rectangle shape friend can not send messages me",
-  chatNoMessages: "မက်ဆေ့ခ်ျမရှိသေးပါ။ ချတ်စတင်လိုက်ပါ!",
-  chatTypeMessagePlaceholder: "မက်ဆေ့ခ်ျရေးပါ...",
+  chatNoMessages: "No messages. Start chat!",
+  chatTypeMessagePlaceholder: "Message...",
   chatRecording: "အသံသွင်းနေသည်...",
   chatPlayVoice: "အသံဖွင့်ရန်",
   chatPauseVoice: "ရပ်ရန်",

@@ -12,6 +12,7 @@
         "onboarded": { "type": "boolean", "description": "Whether the user completed onboarding." },
         "createdAt": { "type": "string", "format": "date-time", "description": "Profile creation timestamp." },
         "updatedAt": { "type": "string", "format": "date-time", "description": "Profile update timestamp." },
+        "lastActiveAt": { "type": "integer", "description": "Unix timestamp in milliseconds of user last activity." },
         "notificationSettings": {
           "type": "object",
           "description": "Notification toggles.",
