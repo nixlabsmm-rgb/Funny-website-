@@ -48,7 +48,7 @@ export default function Login(props: LoginProps) {
             <img 
               id="login-app-logo"
               src={socialLogo} 
-              alt="ပေါက်ပေါက်ဖောက်ရန် Logo" 
+              alt="Pauk Pauk Logo" 
               className="w-24 h-24 object-contain"
               referrerPolicy="no-referrer"
             />

@@ -1,5 +1,5 @@
 export const MM = {
-  appName: "ပေါက်ပေါက်ဖောက်ရန်",
+  appName: "Pauk Pauk",
   appSlogan: "The friendly community social network for everyone",
   loginTitle: "Get Started",
   loginSubtitle: "Sign in with Google to easily connect and share with friends",

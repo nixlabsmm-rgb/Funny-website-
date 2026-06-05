@@ -206,7 +206,7 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
   const triggerWebNotification = (title: string, body: string, iconUrl?: string) => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       if (Notification.permission === 'granted') {
-        new Notification(`ပေါက်ပေါက်ဖောက် • ${title}`, {
+        new Notification(`Pauk Pauk • ${title}`, {
           body: body,
           icon: iconUrl || '/public/icon.png',
           tag: 'incoming-message',
@@ -1119,7 +1119,7 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
               <MessageSquare className="w-8 h-8 text-lime-500 animate-pulse" />
             </div>
             <div>
-              <h3 className="text-sm font-black text-zinc-800 dark:text-zinc-200 tracking-wider font-myanmar leading-relaxed">ပေါက်ပေါက်ဖောက်ရန် Messenger</h3>
+              <h3 className="text-sm font-black text-zinc-800 dark:text-zinc-200 tracking-wider font-sans leading-relaxed">Pauk Pauk Messenger</h3>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-xs leading-relaxed">
                 သူငယ်ချင်းများကို ရွေးချယ်ပြီး တိုက်ရိုက် မက်ဆေ့ခ်ျနှင့် အသံမက်ဆေ့ခ်ျများ ပို့လိုက်ပါ!
               </p>
