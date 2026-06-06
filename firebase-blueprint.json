@@ -99,9 +99,24 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["muted", "createdAt"]
+    },
+    "Support": {
+      "title": "Support Request",
+      "description": "Anonymous support/feedback request submitted by a user.",
+      "type": "object",
+      "properties": {
+        "message": { "type": "string" },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["message", "createdAt"]
     }
   },
   "firestore": {
+    "support/{supportId}": {
+      "schema": "Support",
+      "description": "Feedback and support tickets submitted by users."
+    },
     "users/{userId}": {
       "schema": "User",
       "description": "User profiles and settings."

@@ -202,8 +202,6 @@ export default function FeedPage(props: FeedPageProps) {
     <div id="feed-container" className="space-y-6">
       {/* Post Creator Box */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200/85 dark:border-zinc-800 rounded-none p-6 shadow-xl relative overflow-hidden">
-        {/* Glow accent */}
-        <div className="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-lime-600 via-lime-550 to-emerald-650 opacity-60" />
 
         {error && (
           <div className="p-3 bg-red-950/20 border border-red-800/30 text-red-400 text-xs rounded-none mb-4 flex items-center space-x-2">

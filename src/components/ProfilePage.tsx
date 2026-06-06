@@ -209,8 +209,6 @@ export default function ProfilePage(props: ProfilePageProps) {
     <div id="profile-container" className="space-y-6">
       {/* Profile Header Block */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-none p-6 sm:p-8 shadow-sm relative overflow-hidden">
-        {/* Glowing top highlight */}
-        <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-lime-600 via-lime-550 to-emerald-600" />
 
         <div className="flex flex-col md:flex-row items-center md:items-start justify-between space-y-6 md:space-y-0 md:space-x-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left space-y-4 sm:space-y-0 sm:space-x-5">

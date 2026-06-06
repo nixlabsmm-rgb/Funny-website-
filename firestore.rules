@@ -71,6 +71,11 @@ service cloud.firestore {
         && (!('reactions' in data) || (data.reactions is map));
     }
 
+    function isValidSupport(data) {
+      return data.message is string && data.message.size() >= 1 && data.message.size() <= 10000
+        && (!('userId' in data) || (data.userId is string && data.userId.size() <= 128));
+    }
+
     // Match users
     match /users/{userId} {
       allow get: if isSignedIn();
@@ -144,6 +149,12 @@ service cloud.firestore {
       allow read, get, list: if isOwner(userId);
       allow create, update: if isOwner(userId) && incoming().muted is bool && incoming().createdAt == request.time;
       allow delete: if isOwner(userId);
+    }
+
+    // Match support tickets
+    match /support/{supportId} {
+      allow get, list, update, delete: if false; // Private for user confidence
+      allow create: if isSignedIn() && isValidId(supportId) && isValidSupport(incoming()) && incoming().createdAt == request.time;
     }
 
     // Match chats messages subcollection

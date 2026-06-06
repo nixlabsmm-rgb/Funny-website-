@@ -14,10 +14,11 @@ import Onboarding from './components/Onboarding';
 import FeedPage from './components/FeedPage';
 import ProfilePage from './components/ProfilePage';
 import NotificationSettingsPage from './components/NotificationSettingsPage';
-import { Globe, Rss, User as UserIcon, Bell, Monitor, AlertTriangle, MessageSquare } from 'lucide-react';
+import { Globe, Rss, User as UserIcon, Bell, Monitor, AlertTriangle, MessageSquare, MoreHorizontal } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import socialLogo from './assets/images/social_logo_1780482522011.png';
 import ChatPage from './components/ChatPage';
+import MorePage from './components/MorePage';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -261,6 +262,19 @@ export default function App() {
             <UserIcon className="w-4.5 h-4.5 shrink-0" />
             <span className="font-semibold text-sm">{MM.navProfile}</span>
           </button>
+
+          <button
+            id="sidebar-nav-more"
+            onClick={() => setActiveTab('more')}
+            className={`w-full flex items-center gap-3.5 px-4 py-2.5 rounded-none border transition duration-150 ${
+              activeTab === 'more'
+                ? 'bg-lime-500/10 text-lime-600 dark:text-lime-400 border-lime-500/20 font-semibold'
+                : 'text-zinc-500 dark:text-zinc-400 border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-800 dark:hover:text-zinc-200'
+            }`}
+          >
+            <MoreHorizontal className="w-4.5 h-4.5 shrink-0" />
+            <span className="font-semibold text-sm">{MM.navMore}</span>
+          </button>
         </div>
 
         <div className="mt-auto">
@@ -327,6 +341,12 @@ export default function App() {
                   <span className="text-sm md:text-base font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">{MM.navChat}</span>
                 </>
               )}
+              {activeTab === 'more' && (
+                <>
+                  <MoreHorizontal className="w-4.5 h-4.5 text-lime-600 dark:text-lime-400 shrink-0" />
+                  <span className="text-sm md:text-base font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">{MM.navMore}</span>
+                </>
+              )}
             </div>
           </div>
         </header>
@@ -345,6 +365,7 @@ export default function App() {
               {activeTab === 'profile' && <ProfilePage currentUser={profile} />}
               {activeTab === 'notifications' && <NotificationSettingsPage currentUser={profile} />}
               {activeTab === 'messenger' && <ChatPage currentUser={profile} />}
+              {activeTab === 'more' && <MorePage />}
             </motion.div>
           </AnimatePresence>
         </main>
@@ -482,6 +503,17 @@ export default function App() {
           >
             <UserIcon className="w-5 h-5 shrink-0" />
             <span className="text-[9px] font-black mt-1 uppercase tracking-wider">{MM.navProfile}</span>
+          </button>
+
+          <button
+            id="mobile-nav-more"
+            onClick={() => setActiveTab('more')}
+            className={`flex-1 flex flex-col items-center justify-center py-2 rounded-none transition whitespace-nowrap ${
+              activeTab === 'more' ? 'text-lime-600 font-bold scale-105' : 'text-zinc-500'
+            }`}
+          >
+            <MoreHorizontal className="w-5 h-5 shrink-0" />
+            <span className="text-[9px] font-black mt-1 uppercase tracking-wider">{MM.navMore}</span>
           </button>
 
         </div>

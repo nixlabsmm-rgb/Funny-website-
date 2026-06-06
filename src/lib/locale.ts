@@ -21,6 +21,7 @@ export const MM = {
   navFeed: "Feed",
   navProfile: "Mine",
   navNotifications: "Noti",
+  navMore: "More",
   
   // Feed
   feedInputPlaceholder: "What's on your mind?",

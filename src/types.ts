@@ -50,4 +50,4 @@ export interface Reaction {
 
 export type ReactionType = 'like' | 'haha' | 'care' | 'angry';
 
-export type AppTab = 'feed' | 'messenger' | 'notifications' | 'profile';
+export type AppTab = 'feed' | 'messenger' | 'notifications' | 'profile' | 'more';

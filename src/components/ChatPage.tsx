@@ -32,7 +32,8 @@ import {
   Check,
   Copy,
   Download,
-  Smile
+  Smile,
+  MoreVertical
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -227,6 +228,7 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPeer, setSelectedPeer] = useState<UserProfile | null>(null);
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   
@@ -281,6 +283,28 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
       setHoldMsgId(null);
     } catch (err) {
       console.error("Delete message failed:", err);
+    }
+  };
+
+  const handleClearChat = async () => {
+    if (!selectedPeer) return;
+    if (!window.confirm("Are you sure you want to clear this entire conversation's message record? This cannot be undone.")) {
+      return;
+    }
+
+    const chatId = currentUser.id < selectedPeer.id 
+      ? `${currentUser.id}_${selectedPeer.id}`
+      : `${selectedPeer.id}_${currentUser.id}`;
+      
+    try {
+      const promises = messages.map(msg => {
+        const msgDocRef = doc(db, 'chats', chatId, 'messages', msg.id);
+        return deleteDoc(msgDocRef);
+      });
+      await Promise.all(promises);
+      setShowHeaderMenu(false);
+    } catch (err) {
+      console.error("Clear chat failed:", err);
     }
   };
 
@@ -340,6 +364,11 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
 
   // Resolve active selected peer from up-to-date users list so that updates (e.g. name, photo) reflect instantly in the active chat header
   const resolvedPeer = selectedPeer ? (users.find(u => u.id === selectedPeer.id) || selectedPeer) : null;
+
+  // Auto-close options popover when peer changes
+  useEffect(() => {
+    setShowHeaderMenu(false);
+  }, [selectedPeer]);
 
   // Resolve up-to-date sender display details (e.g., if current user or other peers update their profile)
   const getSenderInfo = (senderId: string, fallbackName: string, fallbackPhoto: string) => {
@@ -834,8 +863,6 @@ export default function ChatPage({ currentUser }: ChatPageProps) {
                   );
                 })()}
               </div>
-              
-
             </div>
 
             {/* Conversation list segment */}
