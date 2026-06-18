@@ -76,17 +76,26 @@ export default function MorePage() {
       });
 
       if (!response.ok) {
-        throw new Error("Local dev server error or offline mode");
+        let errMsg = "Local dev server error or offline mode";
+        try {
+          const errData = await response.json();
+          if (errData && errData.error) {
+            errMsg = errData.error;
+          }
+        } catch (_) {}
+        throw new Error(errMsg);
       }
 
       const data = await response.json();
       setChatHistory(prev => [...prev, { role: 'model', content: data.text || "Sorry, I couldn't understand that." }]);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       // Fallback answers in case Gemini API is offline/unavailable or key is mock
       setTimeout(() => {
         let fallbackAnswer = "Mingalarpar! I'm here but experiencing a slight network connection issue. Let's chat anyway! What can I help you find? 😊";
-        if (userMsg.toLowerCase().includes('bae')) {
+        if (err?.message && err.message.includes("API key is missing")) {
+          fallbackAnswer = "⚠️ Gemini API key is missing on Vercel! Please log into your Vercel Dashboard, go to Settings > Environment Variables, and add GEMINI_API_KEY with your Google Gemini API key value. Once added, redeploy your app on Vercel to activate the live AI Partner! 😊";
+        } else if (userMsg.toLowerCase().includes('bae')) {
           fallbackAnswer = "Bae is derived from English Bae. It's Myanmar youth slang for your sweetheart or lover! 💕 E.g. 'Bae lay ko Lwan nay p' (I am missing my Bae).";
         } else if (userMsg.toLowerCase().includes('gyin')) {
           fallbackAnswer = "Gyin (ဂျင်) is Myanmar slang for getting scammed or getting bad advice! E.g. 'Nga tot gyin mi thwar p' (We got trapped/scammed). Be careful with Gyin!";
@@ -308,7 +317,7 @@ export default function MorePage() {
                         <div className={`w-8 h-8 rounded-none flex items-center justify-center shrink-0 border ${
                           isModel 
                             ? 'bg-lime-500/10 border-zinc-200 dark:border-zinc-800 text-lime-500' 
-                            : 'bg-zinc-950 dark:bg-zinc-100 border-zinc-950 dark:border-zinc-50 text-white dark:text-zinc-950'
+                            : 'bg-lime-500 dark:bg-lime-500 border-lime-600/20 text-zinc-950'
                         }`}>
                           {isModel ? <Sparkles className="w-4 h-4" /> : <Smile className="w-4 h-4" />}
                         </div>

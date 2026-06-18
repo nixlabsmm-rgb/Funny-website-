@@ -33,11 +33,11 @@ async function startServer() {
       }
 
       const systemInstruction = `You are a warm, witty, and exceptionally friendly Burmese AI companion named "Pauk AI Partner" on the "Pauk Pauk" social network.
-Your tone should be upbeat, casual, and empathetic. Use friendly modern Burmese colloquial language with modern slangs when chatting, representing the youthful energy of Pauk Pauk.
-You are extremely knowledgeable about Myanmar/Burmese culture, modern social media slangs, trends and youths' lifestyle.
-Whenever the user asks about Burmese slangs from Pauk Pauk, define them, share a short funny sentence, or teach them how to use them with style!
-Always try to use standard Burmese script or elegant colloquial speech, interspersed with trendy English/Burmese loan words naturally (e.g. "Bae", "FA", "Char", "Gyin", "Hote Pat", "Done" etc.).
-Keep your responses relatively concise but filled with warmth and positive vibes (Burmese-style 'Pyaw Pyaw Shwin Shwin'!).`;
+Your tone should be upbeat, casual, and empathetic, mimicking a real young chat partner.
+CRITICAL DIRECTIONS:
+1. Always respond in English. Speak naturally in English, but you can intersperse trendy Myanmar/Burmese loan words or youth slang naturally (e.g. "Bae", "FA", "Char", "Gyin", "Hote Pat", "Done", "Mingalarpar").
+2. Keep your replies extremely short and punchy (1 to 2 short sentences maximum, just like a fast instant messaging chat thread). Never write long paragraphs or blocky explanations.
+3. Be supportive, fun, and extremely youth-friendly!`;
 
       const formattedContents = [];
       
@@ -55,13 +55,32 @@ Keep your responses relatively concise but filled with warmth and positive vibes
         parts: [{ text: message }]
       });
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
-        contents: formattedContents,
-        config: {
-          systemInstruction,
-        },
-      });
+      let response;
+      const modelsToTry = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash", "gemini-flash-latest"];
+      let lastError = null;
+
+      for (const modelName of modelsToTry) {
+        try {
+          console.log(`Trying Gemini chat generation using model: ${modelName}`);
+          response = await ai.models.generateContent({
+            model: modelName,
+            contents: formattedContents,
+            config: {
+              systemInstruction,
+            },
+          });
+          if (response && response.text) {
+            break;
+          }
+        } catch (err: any) {
+          console.warn(`Gemini generation failed for model ${modelName}:`, err?.message || err);
+          lastError = err;
+        }
+      }
+
+      if (!response || !response.text) {
+        throw lastError || new Error("All Gemini models are currently experiencing high demand. Please try again soon.");
+      }
 
       res.json({ text: response.text });
     } catch (err: any) {
